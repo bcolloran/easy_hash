@@ -176,6 +176,17 @@ impl EasyHash for u32 {
     }
 }
 
+impl EasyHash for u64 {
+    const TYPE_SALT: u32 = type_salt::<u64>();
+
+    fn ehash(&self) -> u64 {
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        checksum.update(&split_u64(*self));
+        checksum.value()
+    }
+}
+
 impl EasyHash for usize {
     const TYPE_SALT: u32 = type_salt::<usize>();
 
