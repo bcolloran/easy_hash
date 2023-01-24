@@ -1,6 +1,9 @@
 /target
 /Cargo.lock
 /*/target
+/easy_hash/target
+/easy_hash_derive/target
+
 
 *.log
 
