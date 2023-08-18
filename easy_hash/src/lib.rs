@@ -1,10 +1,10 @@
 #![feature(const_type_name)]
 
-use std::ops::Range;
-
-use bevy::prelude::Mut;
+// use bevy::prelude::Mut;
+use bevy_ecs::prelude::Mut;
 pub use easy_hash_derive::*;
-use sha2_const::Sha256;
+// use sha2_const::Sha256;
+use const_fnv1a_hash::fnv1a_hash_str_32;
 
 // use std::num::Wrapping;
 
@@ -62,10 +62,11 @@ pub trait EasyHash {
 // }
 
 pub const fn type_salt<T>() -> u32 {
-    let hash = Sha256::new()
-        .update(std::any::type_name::<T>().as_bytes())
-        .finalize();
-    u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]])
+    // let hash = Sha256::new()
+    //     .update(std::any::type_name::<T>().as_bytes())
+    //     .finalize();
+    // u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]])
+    fnv1a_hash_str_32(std::any::type_name::<T>())
 }
 
 pub fn split_u64(x: u64) -> [u32; 2] {

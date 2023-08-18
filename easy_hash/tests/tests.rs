@@ -168,3 +168,76 @@ fn test_tupstruct_ne_tup_when_reordered(a: f32, b: f32, c: u8, d: u8) {
 
 #[derive(EasyHash)]
 struct TestTupOptionStruct(Option<f32>);
+
+#[derive(EasyHash)]
+enum TestEnum1 {
+    A,
+    B,
+    C,
+}
+
+#[derive(EasyHash)]
+enum TestEnum2 {
+    A,
+    B,
+    C,
+}
+
+#[test]
+fn test_enum_self_eq() {
+    let a_a = TestEnum1::A;
+    let a_b = TestEnum1::B;
+    let a_c = TestEnum1::C;
+    assert_eq!(a_a.ehash(), a_a.ehash());
+    let b_a = TestEnum2::A;
+    let b_b = TestEnum2::B;
+    let b_c = TestEnum2::C;
+
+    // variants with the same name in different enums should not be equal
+    assert_ne!(a_a.ehash(), b_a.ehash());
+    assert_ne!(a_b.ehash(), b_b.ehash());
+    assert_ne!(a_c.ehash(), b_c.ehash());
+
+    // variants with different names in different enums should not be equal
+    assert_ne!(a_a.ehash(), a_b.ehash());
+    assert_ne!(a_a.ehash(), b_a.ehash());
+}
+
+#[derive(EasyHash)]
+enum TestEnum3 {
+    A(u8),
+    B(u8),
+}
+
+#[derive(EasyHash)]
+enum TestEnum4 {
+    A(u8),
+    B((u8, u8)),
+    // C { x: u8, y: u8 },
+}
+
+#[test]
+fn test_enum_with_data() {
+    let a_3_0 = TestEnum3::A(0);
+    let a_3_1 = TestEnum3::A(1);
+    let b_3_0 = TestEnum3::B(0);
+    let b_3_1 = TestEnum3::B(1);
+
+    // variants with the same name and enums but different data
+    // must not be equal
+    assert_ne!(a_3_0.ehash(), a_3_1.ehash());
+    assert_ne!(b_3_0.ehash(), b_3_1.ehash());
+
+    // variants with different names but same data must not be equal
+    assert_ne!(a_3_0.ehash(), b_3_0.ehash());
+
+    // variants with the same name and enums but different data
+    // must not be equal
+    let a_4_0 = TestEnum4::A(0);
+    let b_4_00 = TestEnum4::B((0, 0));
+    assert_ne!(a_4_0.ehash(), b_4_00.ehash());
+
+    // variants with different names in different enums should not be equal
+    // assert_ne!(a_a.ehash(), a_b.ehash());
+    // assert_ne!(a_a.ehash(), b_a.ehash());
+}

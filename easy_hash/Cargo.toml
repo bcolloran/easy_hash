@@ -2,14 +2,17 @@
 name = "easy_hash"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.68"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 easy_hash_derive = { path = "../easy_hash_derive" }
 fletcher = "0.3.0"
-sha2-const = "0.1.2"
-bevy = { version = "0.9" }
+# sha2-const = "0.1.2"
+const-fnv1a-hash = "1.1.0"
+# bevy = { version = "0.9" }
+bevy_ecs = { version = "0.11" }
 
 
 [dev-dependencies]

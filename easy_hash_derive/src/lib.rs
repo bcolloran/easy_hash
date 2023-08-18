@@ -1,4 +1,4 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use syn::{
@@ -51,14 +51,77 @@ fn add_trait_bounds(mut generics: Generics) -> Generics {
 // Generate an expression to sum up the heap size of each field.
 fn hash_sum(data: &Data) -> TokenStream {
     match *data {
+        Data::Enum(ref data_enum) => {
+            let match_arms = data_enum.variants.iter().enumerate().map(|v| {
+                let enum_variant_index = Index::from(v.0);
+                let variant = &v.1.ident;
+                // let recurse = hash_sum(&v.1.fields);
+
+                match &v.1.fields {
+                    Fields::Unit => quote! {
+                        Self::#variant => {
+                            checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
+                            checksum.value()
+                        }
+                    },
+                    Fields::Unnamed(fields) => {
+                        let field_names = fields.unnamed.iter().enumerate().map(|(i, f)| {
+                            let name = Ident::new(&format!("f{}", i), f.span());
+                            quote_spanned! {f.span()=>
+                                #name
+                            }
+                        });
+
+                        let field_hash_exprs = fields.unnamed.iter().enumerate().map(|(i, f)| {
+                            let name = Ident::new(&format!("f{}", i), f.span());
+                            quote_spanned! {f.span()=>
+                                easy_hash::EasyHash::ehash(#name)
+                            }
+                        });
+
+                        let sum_expr = quote! {
+                            (std::num::Wrapping(0) #(+ std::num::Wrapping(#field_hash_exprs))* ).0
+                        };
+
+                        quote! {
+                            Self::#variant(#(#field_names,)*) => {
+                                checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
+                                checksum.update(&easy_hash::split_u64(#sum_expr));
+                                checksum.value()
+                            }
+                        }
+                    }
+                    Fields::Named(fields) => {
+                        unimplemented!()
+                    }
+                }
+            });
+
+            quote! {
+                // 0 #(+ #recurse)*
+                // variant.enum_token.to_tokens(tokens);
+
+                // (std::num::Wrapping(0) #(+ std::num::Wrapping(#recurse))* ).0
+                let mut checksum = fletcher::Fletcher64::new();
+                // checksum.update(&[Self::TYPE_SALT]);
+                // #(checksum.update(#recurse);)*
+                match self {
+                    #(#match_arms)*
+                }
+                // checksum.value()
+            }
+        }
         Data::Struct(ref data) => {
             match data.fields {
                 Fields::Named(ref fields) => {
                     // Expands to an expression like
-                    //
-                    //     0 + self.x.easy_hash() + self.y.easy_hash() + self.z.easy_hash()
-                    //
-                    // but using fully qualified function call syntax.
+                    // ```
+                    // checksum.update(&[Self::TYPE_SALT]);
+                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.x)))
+                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.y)))
+                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.z)))
+                    // checksum.value()
+                    // ```
                     //
                     // We take some care to use the span of each `syn::Field` as
                     // the span of the corresponding `easy_hash_of_children`
@@ -85,16 +148,17 @@ fn hash_sum(data: &Data) -> TokenStream {
                 Fields::Unnamed(ref fields) => {
                     // Expands to an expression like
                     //
-                    //     0 + self.0.easy_hash() + self.1.easy_hash() + self.2.easy_hash()
+                    //  ```
+                    // 0 + self.0.easy_hash() + self.1.easy_hash() + self.2.easy_hash()
+                    // ```
+                    // using wrapping arithemtic to avoid overflow panics.
                     let recurse = fields.unnamed.iter().enumerate().map(|(i, f)| {
                         let index = Index::from(i);
                         quote_spanned! {f.span()=>
-
                             easy_hash::EasyHash::ehash(&self.#index)
                         }
                     });
                     quote! {
-                        // 0 #(+ #recurse)*
                         (std::num::Wrapping(0) #(+ std::num::Wrapping(#recurse))* ).0
                     }
                 }
@@ -104,6 +168,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                 }
             }
         }
-        Data::Enum(_) | Data::Union(_) => unimplemented!(),
+
+        Data::Union(_) => unimplemented!(),
     }
 }
