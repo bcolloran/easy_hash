@@ -91,7 +91,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                             }
                         }
                     }
-                    Fields::Named(fields) => {
+                    Fields::Named(_fields) => {
                         unimplemented!()
                     }
                 }
