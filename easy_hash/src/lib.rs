@@ -1,65 +1,15 @@
 #![feature(const_type_name)]
 
-// use bevy::prelude::Mut;
 use bevy_ecs::prelude::Mut;
-pub use easy_hash_derive::*;
-// use sha2_const::Sha256;
 use const_fnv1a_hash::fnv1a_hash_str_32;
-
-// use std::num::Wrapping;
+pub use easy_hash_derive::*;
 
 use fletcher::*;
-
-// pub struct EHashSummer {
-//     checksum: fletcher::Fletcher64,
-// }
-// impl EHashSummer {
-//     pub fn new(&self) {
-//         EHashSummer {
-//             checksum: fletcher::Fletcher64::new(),
-//         }
-//     }
-
-//     pub fn update(&self, x: dyn EasyHash) {
-//         self.checksum.update(&split_u64(x.ehash()));
-//     }
-// }
-
-// fn ehash(&self) -> u64 {
-//     let mut checksum = fletcher::Fletcher64::new();
-//     checksum.update(&[Self::TYPE_SALT]);
-//     for x in self {
-//         checksum.update(&split_u64(x.ehash()));
-//     }
-//     checksum.value()
-// }
 
 pub trait EasyHash {
     const TYPE_SALT: u32;
     fn ehash(&self) -> u64;
 }
-
-// impl<T> EasyHash for T
-// where
-//     T: Hash,
-// {
-// //     fn ehash(&self) -> u64 {
-//         let mut s = DefaultHasher::new();
-//         std::any::type_name::<T>().hash(&mut s); //salt
-//         self.hash(&mut s);
-//         std::hash::Hasher::finish(&s)
-//     }
-// }
-
-// trait SplitU64 {
-//     fn split_u64(self) -> [u32; 2];
-// }
-
-// impl SplitU64 for u64 {
-//     fn split_u64(self) -> [u32; 2] {
-//         [self as u32, (self >> 32) as u32]
-//     }
-// }
 
 pub const fn type_salt<T>() -> u32 {
     // let hash = Sha256::new()
@@ -70,6 +20,10 @@ pub const fn type_salt<T>() -> u32 {
 }
 
 pub fn split_u64(x: u64) -> [u32; 2] {
+    [x as u32, (x >> 32) as u32]
+}
+
+pub fn split_i64(x: i64) -> [u32; 2] {
     [x as u32, (x >> 32) as u32]
 }
 
@@ -152,17 +106,23 @@ impl EasyHash for String {
 impl EasyHash for bool {
     const TYPE_SALT: u32 = type_salt::<bool>();
     fn ehash(&self) -> u64 {
-        // checksum.value()
-        calc_fletcher64(&[bool::TYPE_SALT, *self as u32])
+        calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
     }
 }
+
+/// NOTE: for bit types, fletcher cannot differentiate between
+///  binary all 0 and all 1, so in the case of all 1, we append
+/// an extra copy of the TYPE_SALT to the checksum
 
 impl EasyHash for u8 {
     const TYPE_SALT: u32 = type_salt::<u8>();
 
     fn ehash(&self) -> u64 {
-        // (*self as u64) ^ 23452367569865902
-        calc_fletcher64(&[u8::TYPE_SALT, *self as u32])
+        if *self == u8::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32 | Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
+        }
     }
 }
 
@@ -170,8 +130,12 @@ impl EasyHash for u16 {
     const TYPE_SALT: u32 = type_salt::<u16>();
 
     fn ehash(&self) -> u64 {
-        // (*self as u64) ^ 9218759616293562
-        calc_fletcher64(&[u16::TYPE_SALT, *self as u32])
+        // calc_fletcher64(&[u16::TYPE_SALT, *self as u32])
+        if *self == u16::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32 | Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
+        }
     }
 }
 
@@ -179,8 +143,12 @@ impl EasyHash for u32 {
     const TYPE_SALT: u32 = type_salt::<u32>();
 
     fn ehash(&self) -> u64 {
-        // (*self as u64) ^ 65736917917127009
-        calc_fletcher64(&[u32::TYPE_SALT, *self as u32])
+        // calc_fletcher64(&[u32::TYPE_SALT, *self as u32])
+        if *self == u32::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self, Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self])
+        }
     }
 }
 
@@ -191,6 +159,9 @@ impl EasyHash for u64 {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
         checksum.update(&split_u64(*self));
+        if *self == u64::MAX {
+            checksum.update(&[Self::TYPE_SALT]);
+        }
         checksum.value()
     }
 }
@@ -199,8 +170,81 @@ impl EasyHash for usize {
     const TYPE_SALT: u32 = type_salt::<usize>();
 
     fn ehash(&self) -> u64 {
-        // (*self as u64) ^ 65736917917127009
-        calc_fletcher64(&[usize::TYPE_SALT, *self as u32])
+        // calc_fletcher64(&[usize::TYPE_SALT, *self as u32])
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        checksum.update(&split_u64(*self as u64));
+        if *self as u64 == u64::MAX {
+            checksum.update(&[Self::TYPE_SALT]);
+        }
+        checksum.value()
+    }
+}
+
+impl EasyHash for i8 {
+    const TYPE_SALT: u32 = type_salt::<i8>();
+
+    fn ehash(&self) -> u64 {
+        if *self as u8 == u8::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32 | Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
+        }
+    }
+}
+
+impl EasyHash for i16 {
+    const TYPE_SALT: u32 = type_salt::<i16>();
+
+    fn ehash(&self) -> u64 {
+        // calc_fletcher64(&[i16::TYPE_SALT, *self as u32])
+        if *self as u16 == u16::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32 | Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
+        }
+    }
+}
+
+impl EasyHash for i32 {
+    const TYPE_SALT: u32 = type_salt::<i32>();
+
+    fn ehash(&self) -> u64 {
+        // calc_fletcher64(&[u32::TYPE_SALT, *self as u32])
+        if *self as u32 == u32::MAX {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32, Self::TYPE_SALT])
+        } else {
+            calc_fletcher64(&[Self::TYPE_SALT, *self as u32])
+        }
+    }
+}
+
+impl EasyHash for i64 {
+    const TYPE_SALT: u32 = type_salt::<i64>();
+
+    fn ehash(&self) -> u64 {
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        checksum.update(&split_u64(*self as u64));
+        if *self as u64 == u64::MAX {
+            checksum.update(&[Self::TYPE_SALT]);
+        }
+        checksum.value()
+    }
+}
+
+impl EasyHash for isize {
+    const TYPE_SALT: u32 = type_salt::<isize>();
+
+    fn ehash(&self) -> u64 {
+        // calc_fletcher64(&[usize::TYPE_SALT, *self as u32])
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        checksum.update(&split_u64(*self as u64));
+        if *self as u64 == u64::MAX {
+            checksum.update(&[Self::TYPE_SALT]);
+        }
+        checksum.value()
     }
 }
 

@@ -8,6 +8,27 @@ fn test_salted_uints(x: u8) {
     assert_ne!((x as u8).ehash(), x as u64);
 }
 
+#[test_case((0,1) ; "for 0 1")]
+#[test_case((0,u32::MAX)  ; "for 0 max")]
+#[test_case((1,u32::MAX)  ; "for 1 max")]
+#[test_case((1,u32::MIN)  ; "for 1 min")]
+fn test_u32_problem_cases(ab: (u32, u32)) {
+    assert_ne!((ab.0).ehash(), (ab.1).ehash());
+}
+
+#[test_case((0,1) ; "for 0 1")]
+#[test_case((1,-1)  ; "for 1 neg1")]
+#[test_case((0,-1)  ; "for 0 neg1")]
+#[test_case((0,i32::MAX)  ; "for 0 max")]
+#[test_case((0,i32::MIN)  ; "for 0 min")]
+#[test_case((1,i32::MAX)  ; "for 1 max")]
+#[test_case((1,i32::MIN)  ; "for 1 min")]
+#[test_case((-1,i32::MAX)  ; "for neg1 max")]
+#[test_case((-1,i32::MIN)  ; "for neg1 min")]
+fn test_i32_problem_cases(ab: (i32, i32)) {
+    assert_ne!((ab.0).ehash(), (ab.1).ehash());
+}
+
 // #[test]
 #[test_case(0.1, -0.1, 0, 1 ; "first case")]
 fn test_tup_permute_floats_ne(a: f32, b: f32, c: u8, d: u8) {
