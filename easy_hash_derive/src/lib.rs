@@ -19,8 +19,8 @@ pub fn derive_easy_hash(input: proc_macro::TokenStream) -> proc_macro::TokenStre
     let generics = add_trait_bounds(input.generics);
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    // Generate an expression to sum up the heap size of each field.
-    let sum = hash_sum(&input.data);
+    // Generate an expression to sum up the hash of the input
+    let ehash_fn_inner = hash_sum(&input.data);
 
     let expanded = quote! {
         // The generated impl.
@@ -29,7 +29,7 @@ pub fn derive_easy_hash(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 
             fn ehash(&self) -> u64 {
                 // println!("type salt, {} for {}",)
-                #sum
+                #ehash_fn_inner
             }
         }
     };
@@ -48,7 +48,7 @@ fn add_trait_bounds(mut generics: Generics) -> Generics {
     generics
 }
 
-// Generate an expression to sum up the heap size of each field.
+// Generate an expression to sum up the hashes of each field.
 fn hash_sum(data: &Data) -> TokenStream {
     match *data {
         Data::Enum(ref data_enum) => {
@@ -61,7 +61,6 @@ fn hash_sum(data: &Data) -> TokenStream {
                     Fields::Unit => quote! {
                         Self::#variant => {
                             checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
-                            checksum.value()
                         }
                     },
                     Fields::Unnamed(fields) => {
@@ -87,28 +86,55 @@ fn hash_sum(data: &Data) -> TokenStream {
                             Self::#variant(#(#field_names,)*) => {
                                 checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
                                 checksum.update(&easy_hash::split_u64(#sum_expr));
-                                checksum.value()
+
                             }
                         }
                     }
-                    Fields::Named(_fields) => {
-                        unimplemented!()
+                    Fields::Named(ref fields) => {
+                        // this expands to eg:
+                        // ```
+                        // Self::StructVariant { a, b, c } => {
+                        // let sum_expr = ().0;
+                        // checksum.update(&[Self::TYPE_SALT, enum_variant_index]);
+                        // checksum.update(&easy_hash::split_u64(
+                        //     std::num::Wrapping(0)
+                        //     + std::num::Wrapping(a.ehash())
+                        //     + std::num::Wrapping(b.ehash())
+                        //      + std::num::Wrapping(c.ehash())
+                        // ));
+                        // ```
+                        //
+                        // since the wrapping add is commutative, the fields can be in any order
+                        // so sorting is not necessary
+
+                        let field_names = fields.named.iter().map(|f| {
+                            let name = &f.ident;
+                            quote_spanned! {f.span()=>
+                                #name
+                            }
+                        });
+
+                        let field_names_2 = field_names.clone();
+                        let sum_expr = quote! {
+                            (std::num::Wrapping(0) #(+ std::num::Wrapping(#field_names_2.ehash()))* ).0
+                        };
+
+                        quote! {
+                            Self::#variant{#(#field_names,)*} => {
+                                checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
+                                checksum.update(&easy_hash::split_u64(#sum_expr));
+                            }
+                        }
                     }
                 }
             });
 
             quote! {
-                // 0 #(+ #recurse)*
-                // variant.enum_token.to_tokens(tokens);
-
-                // (std::num::Wrapping(0) #(+ std::num::Wrapping(#recurse))* ).0
                 let mut checksum = fletcher::Fletcher64::new();
-                // checksum.update(&[Self::TYPE_SALT]);
-                // #(checksum.update(#recurse);)*
                 match self {
                     #(#match_arms)*
                 }
-                // checksum.value()
+                checksum.value()
             }
         }
         Data::Struct(ref data) => {
@@ -136,9 +162,6 @@ fn hash_sum(data: &Data) -> TokenStream {
                         }
                     });
                     quote! {
-                        // 0 #(+ #recurse)*
-
-                        // (std::num::Wrapping(0) #(+ std::num::Wrapping(#recurse))* ).0
                         let mut checksum = fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);
                         #(checksum.update(#recurse);)*
@@ -163,8 +186,12 @@ fn hash_sum(data: &Data) -> TokenStream {
                     }
                 }
                 Fields::Unit => {
-                    // Unit structs cannot own more than 0 bytes of heap memory.
-                    quote!(0)
+                    // for unit structs, type_salt is the only thing that matters
+                    quote! {
+                        let mut checksum = fletcher::Fletcher64::new();
+                        checksum.update(&[Self::TYPE_SALT]);
+                        checksum.value()
+                    }
                 }
             }
         }

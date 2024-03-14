@@ -45,6 +45,22 @@ fn test_tup_permute_ints_ne(a: f32, b: f32, c: u8, d: u8) {
 }
 
 #[derive(EasyHash)]
+struct TestUnitStructA;
+
+#[derive(EasyHash)]
+struct TestUnitStructB;
+
+#[test]
+fn test_unit_structs() {
+    let a_1 = TestUnitStructA;
+    let a_2 = TestUnitStructA;
+    let b_1 = TestUnitStructB;
+
+    assert_eq!(a_1.ehash(), a_2.ehash());
+    assert_ne!(a_1.ehash(), b_1.ehash());
+}
+
+#[derive(EasyHash)]
 struct TestStruct {
     a: f32,
     b: f32,
@@ -261,4 +277,38 @@ fn test_enum_with_data() {
     // variants with different names in different enums should not be equal
     // assert_ne!(a_a.ehash(), a_b.ehash());
     // assert_ne!(a_a.ehash(), b_a.ehash());
+}
+
+#[derive(EasyHash)]
+enum TestEnum5 {
+    A { x: u8, y: u8 },
+    B { x: u8, y: u8 },
+    C { x: u8, y: u8 },
+}
+
+#[derive(EasyHash)]
+enum TestEnum6 {
+    A { x: u8, y: u8 },
+    B { x: u8, y: u8 },
+    C { x: u8, y: u8 },
+}
+
+#[test]
+fn test_enum_with_struct_data() {
+    let a_5_0 = TestEnum5::A { x: 0, y: 0 };
+    let a_6_0 = TestEnum6::A { x: 0, y: 0 };
+
+    let b_5_0 = TestEnum5::B { x: 0, y: 0 };
+    let b_5_1 = TestEnum5::B { x: 1, y: 0 };
+    let b_5_1_permute = TestEnum5::B { y: 0, x: 1 };
+
+    // variants with the same name and variants but different data
+    // must not be equal
+    assert_ne!(a_5_0.ehash(), a_6_0.ehash());
+
+    // should be equal if fields are permuted
+    assert_eq!(b_5_1.ehash(), b_5_1_permute.ehash());
+
+    // variants with different names but same data must not be equal
+    assert_ne!(a_5_0.ehash(), b_5_0.ehash());
 }
