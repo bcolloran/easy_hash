@@ -1,9 +1,24 @@
 #![feature(const_type_name)]
 
+#[cfg(feature = "bevy")]
 use bevy_ecs::prelude::Mut;
+
+#[cfg(feature = "bevy")]
+impl<T> EasyHash for Mut<'_, T>
+where
+    T: EasyHash,
+{
+    const TYPE_SALT: u32 = type_salt::<&T>();
+
+    fn ehash(&self) -> u64 {
+        (**self).ehash()
+    }
+}
+
 use const_fnv1a_hash::fnv1a_hash_str_32;
 pub use easy_hash_derive::*;
 
+pub mod easy_hash_2;
 use fletcher::*;
 
 pub trait EasyHash {
@@ -56,17 +71,6 @@ where
         }
 
         checksum.value()
-    }
-}
-
-impl<T> EasyHash for Mut<'_, T>
-where
-    T: EasyHash,
-{
-    const TYPE_SALT: u32 = type_salt::<&T>();
-
-    fn ehash(&self) -> u64 {
-        (**self).ehash()
     }
 }
 
