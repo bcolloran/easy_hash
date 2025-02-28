@@ -1,5 +1,8 @@
 #![feature(const_type_name)]
 
+#[cfg(feature = "nalgebra")]
+pub mod nalgebra;
+
 #[cfg(feature = "bevy")]
 use bevy_ecs::prelude::Mut;
 

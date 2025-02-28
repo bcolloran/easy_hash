@@ -7,7 +7,8 @@ edition = "2021"
 
 [features]
 bevy = ["bevy_ecs"]
-default = []
+nalgebra = []
+default = ["nalgebra"]
 
 [dependencies]
 easy_hash_derive = { path = "../easy_hash_derive" }
@@ -16,6 +17,7 @@ fletcher = "0.3.0"
 const-fnv1a-hash = "1.1.0"
 # bevy = { version = "0.9" }
 bevy_ecs = { version = "0.14", optional = true }
+nalgebra = "0.33"
 
 
 [dev-dependencies]
