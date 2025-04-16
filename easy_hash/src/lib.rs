@@ -1,7 +1,13 @@
 #![feature(const_type_name)]
 
+#[cfg(feature = "ordered_float")]
+pub mod ordered_float;
+
 #[cfg(feature = "nalgebra")]
 pub mod nalgebra;
+
+#[cfg(feature = "rapier")]
+pub mod rapier;
 
 #[cfg(feature = "bevy")]
 use bevy_ecs::prelude::Mut;
@@ -260,6 +266,17 @@ impl EasyHash for f32 {
     fn ehash(&self) -> u64 {
         let bits = self.to_bits() as u32;
         calc_fletcher64(&[f32::TYPE_SALT, bits])
+    }
+}
+
+impl EasyHash for f64 {
+    const TYPE_SALT: u32 = type_salt::<f32>();
+    fn ehash(&self) -> u64 {
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        let bits = self.to_bits() as u64;
+        checksum.update(&split_u64(bits));
+        checksum.value()
     }
 }
 

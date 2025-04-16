@@ -8,7 +8,9 @@ edition = "2021"
 [features]
 bevy = ["bevy_ecs"]
 nalgebra = []
-default = ["nalgebra"]
+ordered_float = []
+rapier = []
+default = ["nalgebra", "ordered_float", "rapier"]
 
 [dependencies]
 easy_hash_derive = { path = "../easy_hash_derive" }
@@ -18,7 +20,15 @@ const-fnv1a-hash = "1.1.0"
 # bevy = { version = "0.9" }
 bevy_ecs = { version = "0.14", optional = true }
 nalgebra = "0.33"
-
+ordered-float = "5.0"
+# rapier2d = { version = "0.24.0", features = [
+#   "serde-serialize",
+#   "enhanced-determinism",
+# ] }
+rapier2d = { path = "/data/code_projects/rust/rapier/crates/rapier2d", features = [
+  "serde-serialize",
+  "enhanced-determinism",
+] }
 
 [dev-dependencies]
 test-case = "3.3.1"
