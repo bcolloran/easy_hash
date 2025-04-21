@@ -24,6 +24,8 @@ where
     }
 }
 
+pub mod std_once_cell;
+
 use const_fnv1a_hash::fnv1a_hash_str_32;
 pub use easy_hash_derive::*;
 
