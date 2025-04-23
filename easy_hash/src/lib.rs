@@ -38,10 +38,6 @@ pub trait EasyHash {
 }
 
 pub const fn type_salt<T>() -> u32 {
-    // let hash = Sha256::new()
-    //     .update(std::any::type_name::<T>().as_bytes())
-    //     .finalize();
-    // u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]])
     fnv1a_hash_str_32(std::any::type_name::<T>())
 }
 
@@ -49,8 +45,19 @@ pub fn split_u64(x: u64) -> [u32; 2] {
     [x as u32, (x >> 32) as u32]
 }
 
+pub fn join_u32s(a: u32, b: u32) -> u64 {
+    ((a as u64) << 32) | (b as u64)
+}
+
 pub fn split_i64(x: i64) -> [u32; 2] {
     [x as u32, (x >> 32) as u32]
+}
+
+impl EasyHash for () {
+    const TYPE_SALT: u32 = type_salt::<Self>();
+    fn ehash(&self) -> u64 {
+        join_u32s(Self::TYPE_SALT, Self::TYPE_SALT)
+    }
 }
 
 impl<T> EasyHash for &T
@@ -142,7 +149,7 @@ impl EasyHash for u8 {
 }
 
 impl EasyHash for u16 {
-    const TYPE_SALT: u32 = type_salt::<u16>();
+    const TYPE_SALT: u32 = type_salt::<Self>();
 
     fn ehash(&self) -> u64 {
         // calc_fletcher64(&[u16::TYPE_SALT, *self as u32])
@@ -155,7 +162,7 @@ impl EasyHash for u16 {
 }
 
 impl EasyHash for u32 {
-    const TYPE_SALT: u32 = type_salt::<u32>();
+    const TYPE_SALT: u32 = type_salt::<Self>();
 
     fn ehash(&self) -> u64 {
         // calc_fletcher64(&[u32::TYPE_SALT, *self as u32])
@@ -168,7 +175,7 @@ impl EasyHash for u32 {
 }
 
 impl EasyHash for u64 {
-    const TYPE_SALT: u32 = type_salt::<u64>();
+    const TYPE_SALT: u32 = type_salt::<Self>();
 
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();
@@ -182,7 +189,7 @@ impl EasyHash for u64 {
 }
 
 impl EasyHash for usize {
-    const TYPE_SALT: u32 = type_salt::<usize>();
+    const TYPE_SALT: u32 = type_salt::<Self>();
 
     fn ehash(&self) -> u64 {
         // calc_fletcher64(&[usize::TYPE_SALT, *self as u32])
