@@ -1,17 +1,15 @@
 #![feature(const_type_name)]
 
-#[cfg(feature = "ordered_float")]
-pub mod ordered_float;
+use const_fnv1a_hash::fnv1a_hash_str_32;
 
 #[cfg(feature = "nalgebra")]
 pub mod nalgebra;
-
+#[cfg(feature = "ordered_float")]
+pub mod ordered_float;
 #[cfg(feature = "rapier")]
 pub mod rapier;
-
 #[cfg(feature = "bevy")]
 use bevy_ecs::prelude::Mut;
-
 #[cfg(feature = "bevy")]
 impl<T> EasyHash for Mut<'_, T>
 where
@@ -24,13 +22,10 @@ where
     }
 }
 
-pub mod std_once_cell;
-
-use const_fnv1a_hash::fnv1a_hash_str_32;
 pub use easy_hash_derive::*;
-
-pub mod easy_hash_2;
 use fletcher::*;
+
+pub mod std_once_cell;
 
 pub trait EasyHash {
     const TYPE_SALT: u32;
@@ -75,7 +70,7 @@ impl<T> EasyHash for Option<T>
 where
     T: EasyHash,
 {
-    const TYPE_SALT: u32 = type_salt::<&T>();
+    const TYPE_SALT: u32 = type_salt::<T>();
 
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();

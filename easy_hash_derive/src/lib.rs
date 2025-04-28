@@ -5,9 +5,7 @@ use syn::{
     parse_macro_input, parse_quote, Data, DeriveInput, Fields, GenericParam, Generics, Index,
 };
 
-// use std::num::std::num::Wrapping;
-
-#[proc_macro_derive(EasyHash)]
+#[proc_macro_derive(EasyHash, attributes(easy_hash_ignore))]
 pub fn derive_easy_hash(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Parse the input tokens into a syntax tree.
     let input = parse_macro_input!(input as DeriveInput);
@@ -42,7 +40,7 @@ pub fn derive_easy_hash(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 fn add_trait_bounds(mut generics: Generics) -> Generics {
     for param in &mut generics.params {
         if let GenericParam::Type(ref mut type_param) = *param {
-            type_param.bounds.push(parse_quote!(easy_hash::HeapSize));
+            type_param.bounds.push(parse_quote!(easy_hash::EasyHash));
         }
     }
     generics
@@ -107,7 +105,13 @@ fn hash_sum(data: &Data) -> TokenStream {
                         // since the wrapping add is commutative, the fields can be in any order
                         // so sorting is not necessary
 
-                        let field_names = fields.named.iter().map(|f| {
+                        let field_names = fields.named.iter()
+                        .filter(|f| {
+                            // Check if field has #[easy_hash_ignore] attribute
+                            let ignore = f.attrs.iter().any(|attr| attr.path.is_ident("easy_hash_ignore")
+                            );
+                            !ignore}
+                        ).map(|f| {
                             let name = &f.ident;
                             quote_spanned! {f.span()=>
                                 #name
@@ -155,12 +159,24 @@ fn hash_sum(data: &Data) -> TokenStream {
                     // implement `EasyHash` then the compiler's error message
                     // underlines which field it is. An example is shown in the
                     // readme of the parent directory.
-                    let recurse = fields.named.iter().map(|f| {
-                        let name = &f.ident;
-                        quote_spanned! {f.span()=>
-                            &easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.#name))
-                        }
-                    });
+                    let recurse = fields
+                        .named
+                        .iter()
+                        .filter(|f| {
+                            // Check if field has #[easy_hash_ignore] attribute
+                            let ignore = f
+                                .attrs
+                                .iter()
+                                .any(|attr| attr.path.is_ident("easy_hash_ignore"));
+                            !ignore
+                        })
+                        .map(|f| {
+                            let name = &f.ident;
+                            quote_spanned! {f.span()=>
+                                &easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.#name))
+                            }
+                        });
+
                     quote! {
                         let mut checksum = fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);

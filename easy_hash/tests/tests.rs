@@ -312,3 +312,30 @@ fn test_enum_with_struct_data() {
     // variants with different names but same data must not be equal
     assert_ne!(a_5_0.ehash(), b_5_0.ehash());
 }
+
+#[derive(EasyHash)]
+struct TestStructIgnore {
+    a: u8,
+    b: f32,
+    #[easy_hash_ignore]
+    c: f32,
+    d: u8,
+}
+
+#[test]
+fn test_struct_with_ignored_field() {
+    let a = TestStructIgnore {
+        a: 0,
+        b: 1.2,
+        c: 3.4,
+        d: 4,
+    };
+    let b = TestStructIgnore {
+        a: 0,
+        b: 1.2,
+        c: 9803.4,
+        d: 4,
+    };
+    // should be equal if only ignored fields are different
+    assert_eq!(a.ehash(), b.ehash());
+}
