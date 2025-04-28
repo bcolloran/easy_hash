@@ -124,3 +124,103 @@ fn test_enum_with_struct_data_order_permutation() {
     // should NOT be equal if data in fields are permuted
     assert_ne!(a.ehash(), flip.ehash());
 }
+
+#[derive(EasyHash)]
+struct InnerStruct {
+    value: u32,
+}
+
+#[derive(EasyHash)]
+enum InnerEnum {
+    X,
+    Y(u8),
+    Z { val: u8 },
+}
+
+#[derive(EasyHash)]
+enum TestEnumNested1 {
+    A(InnerEnum),
+    B { inner: InnerEnum },
+    C(InnerStruct),
+}
+
+#[derive(EasyHash)]
+enum TestEnumNested2 {
+    A(InnerEnum),
+    B { inner: InnerEnum },
+    C(InnerStruct),
+}
+
+#[test]
+fn test_nested_enum_equality() {
+    let a1 = TestEnumNested1::A(InnerEnum::X);
+    let a2 = TestEnumNested1::A(InnerEnum::X);
+    assert_eq!(a1.ehash(), a2.ehash());
+
+    let b1 = TestEnumNested1::B {
+        inner: InnerEnum::Y(42),
+    };
+    let b2 = TestEnumNested1::B {
+        inner: InnerEnum::Y(42),
+    };
+    assert_eq!(b1.ehash(), b2.ehash());
+}
+
+#[test]
+fn test_nested_enum_inequality() {
+    // Different inner enum variants
+    let a1 = TestEnumNested1::A(InnerEnum::X);
+    let a2 = TestEnumNested1::A(InnerEnum::Y(1));
+    assert_ne!(a1.ehash(), a2.ehash());
+
+    let b1 = TestEnumNested1::B {
+        inner: InnerEnum::Z { val: 10 },
+    };
+    let b2 = TestEnumNested1::B {
+        inner: InnerEnum::Z { val: 20 },
+    };
+    assert_ne!(b1.ehash(), b2.ehash());
+
+    let c1 = TestEnumNested1::C(InnerStruct { value: 100 });
+    let c2 = TestEnumNested2::C(InnerStruct { value: 100 });
+    assert_ne!(c1.ehash(), c2.ehash());
+}
+
+#[test]
+fn test_enum_with_struct_nested() {
+    let a = TestEnumNested1::C(InnerStruct { value: 42 });
+    let b = TestEnumNested1::C(InnerStruct { value: 42 });
+    let c = TestEnumNested1::C(InnerStruct { value: 43 });
+
+    assert_eq!(a.ehash(), b.ehash());
+    assert_ne!(a.ehash(), c.ehash());
+}
+
+#[test]
+fn test_empty_enum() {
+    // Just compile test - we can't instantiate an empty enum
+}
+
+#[derive(EasyHash)]
+enum EnumWithMultipleFields {
+    A(u8, u16, u32),
+    B { x: u8, y: u16, z: u32 },
+}
+
+#[test]
+fn test_enum_with_multiple_fields() {
+    let a1 = EnumWithMultipleFields::A(1, 2, 3);
+    let a2 = EnumWithMultipleFields::A(1, 2, 3);
+    let a3 = EnumWithMultipleFields::A(3, 2, 1);
+
+    assert_eq!(a1.ehash(), a2.ehash());
+    assert_ne!(a1.ehash(), a3.ehash());
+
+    let b1 = EnumWithMultipleFields::B { x: 1, y: 2, z: 3 };
+    let b2 = EnumWithMultipleFields::B { x: 1, y: 2, z: 3 };
+    let b3 = EnumWithMultipleFields::B { x: 3, y: 2, z: 1 };
+
+    assert_eq!(b1.ehash(), b2.ehash());
+    assert_ne!(b1.ehash(), b3.ehash());
+    assert_ne!(a1.ehash(), b1.ehash());
+}

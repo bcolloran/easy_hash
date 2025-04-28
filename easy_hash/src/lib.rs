@@ -107,6 +107,22 @@ where
     }
 }
 
+impl EasyHash for &str {
+    const TYPE_SALT: u32 = type_salt::<Self>();
+    fn ehash(&self) -> u64 {
+        let mut checksum = fletcher::Fletcher64::new();
+        checksum.update(&[Self::TYPE_SALT]);
+        for chunk in self.as_bytes().rchunks(4) {
+            let mut byte = [0u8; 4];
+            for j in 0..4 {
+                byte[j] = *chunk.get(j).unwrap_or(&0);
+            }
+            checksum.update(&[u32::from_le_bytes(byte)]);
+        }
+        checksum.value()
+    }
+}
+
 impl EasyHash for String {
     const TYPE_SALT: u32 = type_salt::<String>();
     fn ehash(&self) -> u64 {
