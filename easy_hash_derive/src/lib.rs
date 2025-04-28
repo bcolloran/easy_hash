@@ -62,6 +62,15 @@ fn hash_sum(data: &Data) -> TokenStream {
                         }
                     },
                     Fields::Unnamed(fields) => {
+                        // this expands to eg:
+                        // ```
+                        // Self::C(f0, f1) => {
+                        //     checksum.update(&[Self::TYPE_SALT, 2]);
+                        //     checksum.update(&easy_hash::u64_to_u32_slice(&[
+                        //         easy_hash::EasyHash::ehash(f0).ehash(),
+                        //         easy_hash::EasyHash::ehash(f1).ehash(),
+                        //     ]));
+                        // }
                         let field_names = fields.unnamed.iter().enumerate().map(|(i, f)| {
                             let name = Ident::new(&format!("f{}", i), f.span());
                             quote_spanned! {f.span()=>
@@ -76,59 +85,63 @@ fn hash_sum(data: &Data) -> TokenStream {
                             }
                         });
 
-                        let sum_expr = quote! {
-                            (std::num::Wrapping(0) #(+ std::num::Wrapping(#field_hash_exprs))* ).0
+                        let hash_expr = quote! {
+                            #(#field_hash_exprs.ehash(),)*
                         };
 
                         quote! {
                             Self::#variant(#(#field_names,)*) => {
                                 checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
-                                checksum.update(&easy_hash::split_u64(#sum_expr));
-
+                                checksum.update(&easy_hash::u64_to_u32_slice(&[#hash_expr]));
                             }
                         }
                     }
                     Fields::Named(ref fields) => {
                         // this expands to eg:
                         // ```
-                        // Self::StructVariant { a, b, c } => {
-                        // let sum_expr = ().0;
-                        // checksum.update(&[Self::TYPE_SALT, enum_variant_index]);
-                        // checksum.update(&easy_hash::split_u64(
-                        //     std::num::Wrapping(0)
-                        //     + std::num::Wrapping(a.ehash())
-                        //     + std::num::Wrapping(b.ehash())
-                        //      + std::num::Wrapping(c.ehash())
-                        // ));
+                        // Self::C { x, y } => {
+                        //     checksum.update(&[Self::TYPE_SALT, 2]);
+                        //     checksum.update(&easy_hash::u64_to_u32_slice(&[x.ehash(), y.ehash()]));
+                        // }
                         // ```
-                        //
-                        // since the wrapping add is commutative, the fields can be in any order
-                        // so sorting is not necessary
 
-                        let field_names = fields.named.iter()
-                        .filter(|f| {
-                            // Check if field has #[easy_hash_ignore] attribute
-                            let ignore = f.attrs.iter().any(|attr| attr.path.is_ident("easy_hash_ignore")
-                            );
-                            !ignore}
-                        ).map(|f| {
-                            let name = &f.ident;
-                            quote_spanned! {f.span()=>
-                                #name
-                            }
-                        });
+                        let field_names = fields
+                            .named
+                            .iter()
+                            .filter(|f| {
+                                // Check if field has #[easy_hash_ignore] attribute
+                                let ignore = f
+                                    .attrs
+                                    .iter()
+                                    .any(|attr| attr.path.is_ident("easy_hash_ignore"));
+                                !ignore
+                            })
+                            .map(|f| {
+                                let name = &f.ident;
+                                quote_spanned! {f.span()=>
+                                    #name
+                                }
+                            });
 
                         let field_names_2 = field_names.clone();
-                        let sum_expr = quote! {
-                            (std::num::Wrapping(0) #(+ std::num::Wrapping(#field_names_2.ehash()))* ).0
+
+                        let hash_expr = quote! {
+                            #(#field_names_2.ehash(),)*
                         };
 
                         quote! {
                             Self::#variant{#(#field_names,)*} => {
                                 checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
-                                checksum.update(&easy_hash::split_u64(#sum_expr));
+                                checksum.update(&easy_hash::u64_to_u32_slice(&[#hash_expr]));
                             }
                         }
+
+                        // quote! {
+                        //     Self::#variant{#(#field_names,)*} => {
+                        //         checksum.update(&[Self::TYPE_SALT, #enum_variant_index]);
+                        //         checksum.update(&easy_hash::split_u64(#sum_expr));
+                        //     }
+                        // }
                     }
                 }
             });
@@ -146,10 +159,13 @@ fn hash_sum(data: &Data) -> TokenStream {
                 Fields::Named(ref fields) => {
                     // Expands to an expression like
                     // ```
+                    // let mut checksum = fletcher::Fletcher64::new();
                     // checksum.update(&[Self::TYPE_SALT]);
-                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.x)))
-                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.y)))
-                    // checksum.update(easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.z)))
+                    // checksum.update(&easy_hash::u64_to_u32_slice(&[
+                    //     easy_hash::EasyHash::ehash(&self.a),
+                    //     easy_hash::EasyHash::ehash(&self.b),
+                    //     easy_hash::EasyHash::ehash(&self.x),
+                    // ]));
                     // checksum.value()
                     // ```
                     //
@@ -173,24 +189,31 @@ fn hash_sum(data: &Data) -> TokenStream {
                         .map(|f| {
                             let name = &f.ident;
                             quote_spanned! {f.span()=>
-                                &easy_hash::split_u64(easy_hash::EasyHash::ehash(&self.#name))
+                                easy_hash::EasyHash::ehash(&self.#name)
                             }
                         });
 
                     quote! {
                         let mut checksum = fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);
-                        #(checksum.update(#recurse);)*
+                        checksum.update(&easy_hash::u64_to_u32_slice(&[ #(#recurse,)* ]));
                         checksum.value()
                     }
                 }
                 Fields::Unnamed(ref fields) => {
                     // Expands to an expression like
                     //
-                    //  ```
-                    // 0 + self.0.easy_hash() + self.1.easy_hash() + self.2.easy_hash()
                     // ```
-                    // using wrapping arithemtic to avoid overflow panics.
+                    // let mut checksum = fletcher::Fletcher64::new();
+                    // checksum.update(&[Self::TYPE_SALT]);
+                    // checksum.update(&easy_hash::u64_to_u32_slice(&[
+                    //     easy_hash::EasyHash::ehash(&self.0),
+                    //     easy_hash::EasyHash::ehash(&self.1),
+                    //     easy_hash::EasyHash::ehash(&self.2),
+                    //     easy_hash::EasyHash::ehash(&self.3),
+                    // ]));
+                    // checksum.value()
+                    // ```
                     let recurse = fields.unnamed.iter().enumerate().map(|(i, f)| {
                         let index = Index::from(i);
                         quote_spanned! {f.span()=>
@@ -198,7 +221,10 @@ fn hash_sum(data: &Data) -> TokenStream {
                         }
                     });
                     quote! {
-                        (std::num::Wrapping(0) #(+ std::num::Wrapping(#recurse))* ).0
+                        let mut checksum = fletcher::Fletcher64::new();
+                        checksum.update(&[Self::TYPE_SALT]);
+                        checksum.update(&easy_hash::u64_to_u32_slice(&[ #(#recurse,)* ]));
+                        checksum.value()
                     }
                 }
                 Fields::Unit => {

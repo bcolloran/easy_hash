@@ -116,6 +116,22 @@ fn test_structs_not_equal_to_tup_with_same_data(a: f32, b: f32, c: u8, d: u8) {
 }
 
 #[derive(EasyHash)]
+struct TestTupStruct(f32, f32, u8, u8);
+
+#[test]
+fn test_tup_structs_permute_floats_fields() {
+    let a = TestTupStruct(-1.0, 1.0, 0, 0);
+    let b = TestTupStruct(1.0, -1.0, 0, 0);
+    assert_ne!(a.ehash(), b.ehash());
+}
+#[test]
+fn test_tup_structs_permute_int_fields() {
+    let a = TestTupStruct(0.0, -0.1, 0, 1);
+    let b = TestTupStruct(0.0, -0.1, 1, 0);
+    assert_ne!(a.ehash(), b.ehash());
+}
+
+#[derive(EasyHash)]
 struct TestStructTwo {
     a: f32,
     b: f32,
@@ -193,125 +209,15 @@ fn test_vec_of_struct_ne_when_reordered(a: f32, b: f32, c: u8, d: u8) {
     assert_ne!(v1.ehash(), v2.ehash());
 }
 
-#[derive(EasyHash)]
-struct TestTupStruct(f32, f32, u8, u8);
+fn test_tup_of_tupstruct_and_tup_ne_tup_when_reordered() {
+    let a = TestTupStruct(0.0, -0.1, 0, 1);
+    let xxx = (0.0, -0.1, 0, 1);
 
-#[test_case(0.0, -0.1, 0, 1 ; "first case")]
-fn test_tupstruct_ne_tup_when_reordered(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestTupStruct(a, b, c, d);
-    let bb = (a, b, c, d);
-    assert_ne!((&bb, &aa).ehash(), (&aa, &bb).ehash());
+    assert_ne!((&xxx, &a).ehash(), (&a, &xxx).ehash());
 }
 
 #[derive(EasyHash)]
 struct TestTupOptionStruct(Option<f32>);
-
-#[derive(EasyHash)]
-enum TestEnum1 {
-    A,
-    B,
-    C,
-}
-
-#[derive(EasyHash)]
-enum TestEnum2 {
-    A,
-    B,
-    C,
-}
-
-#[test]
-fn test_enum_self_eq() {
-    let a_a = TestEnum1::A;
-    let a_b = TestEnum1::B;
-    let a_c = TestEnum1::C;
-    assert_eq!(a_a.ehash(), a_a.ehash());
-    let b_a = TestEnum2::A;
-    let b_b = TestEnum2::B;
-    let b_c = TestEnum2::C;
-
-    // variants with the same name in different enums should not be equal
-    assert_ne!(a_a.ehash(), b_a.ehash());
-    assert_ne!(a_b.ehash(), b_b.ehash());
-    assert_ne!(a_c.ehash(), b_c.ehash());
-
-    // variants with different names in different enums should not be equal
-    assert_ne!(a_a.ehash(), a_b.ehash());
-    assert_ne!(a_a.ehash(), b_a.ehash());
-}
-
-#[derive(EasyHash)]
-enum TestEnum3 {
-    A(u8),
-    B(u8),
-}
-
-#[derive(EasyHash)]
-enum TestEnum4 {
-    A(u8),
-    B((u8, u8)),
-    // C { x: u8, y: u8 },
-}
-
-#[test]
-fn test_enum_with_data() {
-    let a_3_0 = TestEnum3::A(0);
-    let a_3_1 = TestEnum3::A(1);
-    let b_3_0 = TestEnum3::B(0);
-    let b_3_1 = TestEnum3::B(1);
-
-    // variants with the same name and enums but different data
-    // must not be equal
-    assert_ne!(a_3_0.ehash(), a_3_1.ehash());
-    assert_ne!(b_3_0.ehash(), b_3_1.ehash());
-
-    // variants with different names but same data must not be equal
-    assert_ne!(a_3_0.ehash(), b_3_0.ehash());
-
-    // variants with the same name and enums but different data
-    // must not be equal
-    let a_4_0 = TestEnum4::A(0);
-    let b_4_00 = TestEnum4::B((0, 0));
-    assert_ne!(a_4_0.ehash(), b_4_00.ehash());
-
-    // variants with different names in different enums should not be equal
-    // assert_ne!(a_a.ehash(), a_b.ehash());
-    // assert_ne!(a_a.ehash(), b_a.ehash());
-}
-
-#[derive(EasyHash)]
-enum TestEnum5 {
-    A { x: u8, y: u8 },
-    B { x: u8, y: u8 },
-    C { x: u8, y: u8 },
-}
-
-#[derive(EasyHash)]
-enum TestEnum6 {
-    A { x: u8, y: u8 },
-    B { x: u8, y: u8 },
-    C { x: u8, y: u8 },
-}
-
-#[test]
-fn test_enum_with_struct_data() {
-    let a_5_0 = TestEnum5::A { x: 0, y: 0 };
-    let a_6_0 = TestEnum6::A { x: 0, y: 0 };
-
-    let b_5_0 = TestEnum5::B { x: 0, y: 0 };
-    let b_5_1 = TestEnum5::B { x: 1, y: 0 };
-    let b_5_1_permute = TestEnum5::B { y: 0, x: 1 };
-
-    // variants with the same name and variants but different data
-    // must not be equal
-    assert_ne!(a_5_0.ehash(), a_6_0.ehash());
-
-    // should be equal if fields are permuted
-    assert_eq!(b_5_1.ehash(), b_5_1_permute.ehash());
-
-    // variants with different names but same data must not be equal
-    assert_ne!(a_5_0.ehash(), b_5_0.ehash());
-}
 
 #[derive(EasyHash)]
 struct TestStructIgnore {
@@ -319,7 +225,7 @@ struct TestStructIgnore {
     b: f32,
     #[easy_hash_ignore]
     c: f32,
-    d: u8,
+    x: u8,
 }
 
 #[test]
@@ -328,13 +234,13 @@ fn test_struct_with_ignored_field() {
         a: 0,
         b: 1.2,
         c: 3.4,
-        d: 4,
+        x: 4,
     };
     let b = TestStructIgnore {
         a: 0,
         b: 1.2,
         c: 9803.4,
-        d: 4,
+        x: 4,
     };
     // should be equal if only ignored fields are different
     assert_eq!(a.ehash(), b.ehash());

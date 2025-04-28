@@ -40,6 +40,10 @@ pub fn split_u64(x: u64) -> [u32; 2] {
     [x as u32, (x >> 32) as u32]
 }
 
+pub fn u64_to_u32_slice(x: &[u64]) -> &[u32] {
+    bytemuck::cast_slice(x)
+}
+
 pub fn join_u32s(a: u32, b: u32) -> u64 {
     ((a as u64) << 32) | (b as u64)
 }

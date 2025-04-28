@@ -15,6 +15,7 @@ default = ["nalgebra", "ordered_float", "rapier"]
 [dependencies]
 easy_hash_derive = { path = "../easy_hash_derive" }
 fletcher = "0.3.0"
+bytemuck = "1.22.0"
 # sha2-const = "0.1.2"
 const-fnv1a-hash = "1.1.0"
 # bevy = { version = "0.9" }
