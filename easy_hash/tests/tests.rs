@@ -326,6 +326,7 @@ fn test_vec_of_struct_ne_when_reordered(a: f32, b: f32, c: u8, d: u8) {
     assert_ne!(v1.ehash(), v2.ehash());
 }
 
+#[test]
 fn test_tup_of_tupstruct_and_tup_ne_tup_when_reordered() {
     let a = TestTupStruct(0.0, -0.1, 0, 1);
     let xxx = (0.0, -0.1, 0, 1);
@@ -337,6 +338,7 @@ fn test_tup_of_tupstruct_and_tup_ne_tup_when_reordered() {
 struct TestTupOptionStruct(Option<f32>);
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 struct TestStructIgnore {
     a: u8,
     b: f32,

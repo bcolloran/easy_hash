@@ -41,6 +41,7 @@ enum TestEnum3 {
 }
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 enum TestEnum4 {
     A(u8),
     B((u8, u8)),
@@ -80,6 +81,7 @@ fn test_enum_with_tup_data_permutation() {
 }
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 enum TestEnum5 {
     A { x: u8, y: u8 },
     B { x: u8, y: u8 },
@@ -87,6 +89,7 @@ enum TestEnum5 {
 }
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 enum TestEnum6 {
     A { x: u8, y: u8 },
     B { x: u8, y: u8 },
@@ -145,6 +148,7 @@ enum TestEnumNested1 {
 }
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 enum TestEnumNested2 {
     A(InnerEnum),
     B { inner: InnerEnum },
