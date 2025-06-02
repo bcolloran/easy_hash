@@ -1,0 +1,2 @@
+[workspace]
+members = ["easy_hash", "easy_hash_derive"]
