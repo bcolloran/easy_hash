@@ -37,7 +37,7 @@ pub const fn type_salt<T>() -> u32 {
 }
 
 pub fn split_u64(x: u64) -> [u32; 2] {
-    [x as u32, (x >> 32) as u32]
+    [(x >> 32) as u32, x as u32]
 }
 
 pub fn u64_to_u32_slice(x: &[u64]) -> &[u32] {
@@ -49,7 +49,7 @@ pub fn join_u32s(a: u32, b: u32) -> u64 {
 }
 
 pub fn split_i64(x: i64) -> [u32; 2] {
-    [x as u32, (x >> 32) as u32]
+    [(x >> 32) as u32, x as u32]
 }
 
 impl EasyHash for () {

@@ -11,6 +11,7 @@
 crates/*/target
 **/*.rs.bk
 Cargo.lock
+rapier/
 .cargo/config
 .cargo/config.toml
 /.idea
