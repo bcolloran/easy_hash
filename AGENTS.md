@@ -20,7 +20,7 @@ rapier2d = { path = "./rapier/crates/rapier2d" }
 EOF
 ```
 
-This is necessary because the `rapier` crate is not published on crates.io, and the Codex environment has no network access to download it from GitHub. **The files that have been cloned into the `./rapier` folder are totally irrelevant to our project, and should always be ignored. We just need to vendor them to get the Codex environment working.**
+This is necessary because the `rapier` crate is not published on crates.io, and the Codex environment has no network access to download it from GitHub. **The files that have been cloned into the `./rapier` folder are totally irrelevant to our project, and should always be ignored. We just need to vendor them to get the Codex environment working. In all other circumstances, we use the files directly from git**
 
 
 # Tests
