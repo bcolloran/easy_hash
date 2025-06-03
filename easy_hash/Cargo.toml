@@ -5,8 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
 [features]
-bevy = ["bevy_ecs"]
+bevy = []
 nalgebra = []
 ordered_float = []
 rapier = []
@@ -17,7 +18,6 @@ easy_hash_derive = { path = "../easy_hash_derive" }
 fletcher = "0.3.0"
 bytemuck = "1.22.0"
 const-fnv1a-hash = "1.1.0"
-bevy_ecs = { version = "0.14", optional = true }
 nalgebra = "0.33"
 ordered-float = "5.0"
 
@@ -26,7 +26,7 @@ ordered-float = "5.0"
 #   "serde-serialize",
 #   "enhanced-determinism",
 # ] }
-rapier2d = { git = "https://github.com/bcolloran/rapier.git", rev = "bc9c06fbe523d7f3c5a0458e0899c9bf7fb2c7a3", features = [
+rapier2d = { version = "0.24.0", features = [
   "serde-serialize",
   "enhanced-determinism",
 ] }
