@@ -1,13 +1,6 @@
 # Running in Codex environment
 
-The Codex environment runs the steps commands below to clone the `rapier` repository and checks out a specific commit, and create a `.cargo/config.toml` file including
-```
-[patch.crates-io]
-rapier2d = { path = "./rapier/crates/rapier2d" }
-```
-in order to point the Codex env at the required version of the `rapier` crate.
-
-
+The Codex environment runs the commands below:
 ```
 git clone https://github.com/bcolloran/rapier.git ./rapier
 cd ./rapier
@@ -20,7 +13,15 @@ rapier2d = { path = "./rapier/crates/rapier2d" }
 EOF
 ```
 
-This is necessary because the `rapier` crate is not published on crates.io, and the Codex environment has no network access to download it from GitHub. **The files that have been cloned into the `./rapier` folder are totally irrelevant to our project, and should always be ignored. We just need to vendor them to get the Codex environment working. In all other circumstances, we use the files directly from git**
+This clones the `rapier` repository and checks out a specific commit, and create a `.cargo/config.toml` file including
+```
+[patch."https://github.com/bcolloran/rapier"]
+rapier2d = { path = "./rapier/crates/rapier2d" }
+```
+in order to point the Codex env at the required version of the `rapier` crate (which is normally specified in the `Cargo.toml` as pointing at a specific commit of a specific fork on github. ).
+
+
+This is necessary because the `rapier` crate is not published on crates.io, and the Codex environment has no network access to download it from GitHub. **The files that have been cloned into the `./rapier` folder are totally irrelevant to our project, and should always be ignored. We just need to vendor them to get the Codex environment working. In all other circumstances, we use the files directly from git. The agent must not change the version of `rapier` specified in `Cargo.toml`.**
 
 
 # Tests
