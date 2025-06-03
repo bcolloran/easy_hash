@@ -364,3 +364,17 @@ fn test_struct_with_ignored_field() {
     // should be equal if only ignored fields are different
     assert_eq!(a.ehash(), b.ehash());
 }
+
+#[test_case(0i32, 0u64 ; "i32 vs u64")]
+#[test_case(0i32, 0usize ; "i32 vs usize")]
+#[test_case(0i32, false ; "i32 vs bool")]
+#[test_case(0i32, () ; "i32 vs unit")]
+#[test_case(0u64, 0usize ; "u64 vs usize")]
+#[test_case(0u64, false ; "u64 vs bool")]
+#[test_case(0u64, () ; "u64 vs unit")]
+#[test_case(0usize, false ; "usize vs bool")]
+#[test_case(0usize, () ; "usize vs unit")]
+#[test_case(false, () ; "bool vs unit")]
+fn test_zero_values_different_types<A: EasyHash, B: EasyHash>(a: A, b: B) {
+    assert_ne!(a.ehash(), b.ehash());
+}
