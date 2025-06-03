@@ -29,6 +29,12 @@ The agent should not change the contents of the `.cargo/config.toml` file, or th
 **Before making any changes to the code, the agent must run all tests to ensure that they pass. If any tests fail, the agent must immediately halt all work and inform the user.**
 
 
+## Running tests
+
+The agent should always run `cargo test` in the workspace root to run all tests in the workspace, not just the tests in the current crate. Do not pass additional flags to `cargo test` unless specifically requested by the user.
+
+
+
 ## File layout
 Try to ensure that the file organization for tests matches that of the implementation code, e.g., if `EasyHash` for `OrderedFloat` is implemented in the file `ordered_float.rs`, 
 put tests in `tests/test_ordered_float.rs`.
