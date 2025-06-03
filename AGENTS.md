@@ -15,7 +15,7 @@ git checkout bc9c06fbe523d7f3c5a0458e0899c9bf7fb2c7a3
 cd ..
 mkdir -p .cargo
 cat > .cargo/config.toml << EOF
-[patch.crates-io]
+[patch."https://github.com/bcolloran/rapier"]
 rapier2d = { path = "./rapier/crates/rapier2d" }
 EOF
 ```
