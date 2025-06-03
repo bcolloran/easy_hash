@@ -1,29 +1,3 @@
-# Running in Codex environment
-
-The Codex environment runs the commands below:
-```
-git clone https://github.com/bcolloran/rapier.git ./rapier
-cd ./rapier
-git checkout bc9c06fbe523d7f3c5a0458e0899c9bf7fb2c7a3
-cd ..
-mkdir -p .cargo
-cat > .cargo/config.toml << EOF
-[patch."https://github.com/bcolloran/rapier"]
-rapier2d = { path = "./rapier/crates/rapier2d" }
-EOF
-```
-
-This clones the `rapier` repository and checks out a specific commit, and create a `.cargo/config.toml` file including
-```
-[patch."https://github.com/bcolloran/rapier"]
-rapier2d = { path = "./rapier/crates/rapier2d" }
-```
-in order to point the Codex env at the required version of the `rapier` crate (which is normally specified in the `Cargo.toml` as pointing at a specific commit of a specific fork on github. ).
-
-This is necessary because the `rapier` crate is not published on crates.io, and the Codex environment has no network access to download it from GitHub. **The files that have been cloned into the `./rapier` folder are totally irrelevant to our project, and should always be ignored. We just need to vendor them to get the Codex environment working. In all other circumstances, we use the files directly from git. The agent must not change the version of `rapier` specified in `Cargo.toml`.**
-
-The agent should not change the contents of the `.cargo/config.toml` file, or the contents of the `rapier` folder. The agent should confirm that the `.cargo/config.toml` file is created correctly and has the contents described, and that the `rapier` folder exists and is not empty. **If these conditions are not met, the agent must immediately halt all work and inform the user.**
-
 # Tests
 
 **Before making any changes to the code, the agent must run all tests to ensure that they pass. If any tests fail, the agent must immediately halt all work and inform the user.**
@@ -32,7 +6,6 @@ The agent should not change the contents of the `.cargo/config.toml` file, or th
 ## Running tests
 
 The agent should always run `cargo test` in the workspace root to run all tests in the workspace, not just the tests in the current crate. Do not pass additional flags to `cargo test` unless specifically requested by the user.
-
 
 
 ## File layout
