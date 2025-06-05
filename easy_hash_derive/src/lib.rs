@@ -86,7 +86,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                         });
 
                         let hash_expr = quote! {
-                            #(#field_hash_exprs.ehash(),)*
+                            #(#field_hash_exprs,)*
                         };
 
                         quote! {

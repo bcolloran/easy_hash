@@ -1,6 +1,7 @@
 use std::cell::OnceCell;
 
 use crate::{split_u64, type_salt, EasyHash};
+use fletcher::calc_fletcher64;
 
 impl<T> EasyHash for OnceCell<T>
 where
@@ -9,16 +10,13 @@ where
     const TYPE_SALT: u32 = type_salt::<&T>();
 
     fn ehash(&self) -> u64 {
-        let mut checksum = fletcher::Fletcher64::new();
-        checksum.update(&[Self::TYPE_SALT]);
+        const NONE_VAL: u32 = 961_157_112;
 
         if let Some(x) = self.get() {
-            checksum.update(&split_u64(x.ehash()));
+            let parts = split_u64(x.ehash());
+            calc_fletcher64(&[Self::TYPE_SALT, parts[0], parts[1]])
         } else {
-            let none_val: u32 = 961157112;
-            checksum.update(&[none_val]);
+            calc_fletcher64(&[Self::TYPE_SALT, NONE_VAL])
         }
-
-        checksum.value()
     }
 }
