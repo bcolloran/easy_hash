@@ -96,7 +96,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                             }
                         }
                     }
-                    Fields::Named(ref fields) => {
+                    Fields::Named(fields) => {
                         // this expands to eg:
                         // ```
                         // Self::C { x, y } => {
