@@ -113,7 +113,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                                 let ignore = f
                                     .attrs
                                     .iter()
-                                    .any(|attr| attr.path.is_ident("easy_hash_ignore"));
+                                    .any(|attr| attr.path().is_ident("easy_hash_ignore"));
                                 !ignore
                             })
                             .map(|f| {
@@ -183,7 +183,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                             let ignore = f
                                 .attrs
                                 .iter()
-                                .any(|attr| attr.path.is_ident("easy_hash_ignore"));
+                                .any(|attr| attr.path().is_ident("easy_hash_ignore"));
                             !ignore
                         })
                         .map(|f| {
