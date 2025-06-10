@@ -25,6 +25,7 @@ where
 pub use easy_hash_derive::*;
 use fletcher::*;
 
+pub mod bytemuck_slices;
 pub mod std_once_cell;
 pub mod tuples;
 
