@@ -38,18 +38,22 @@ pub const fn type_salt<T>() -> u32 {
     fnv1a_hash_str_32(std::any::type_name::<T>())
 }
 
+#[inline]
 pub fn split_u64(x: u64) -> [u32; 2] {
     [(x >> 32) as u32, x as u32]
 }
 
+#[inline]
 pub fn u64_to_u32_slice(x: &[u64]) -> &[u32] {
     bytemuck::cast_slice(x)
 }
 
+#[inline]
 pub fn join_u32s(a: u32, b: u32) -> u64 {
     ((a as u64) << 32) | (b as u64)
 }
 
+#[inline]
 pub fn split_i64(x: i64) -> [u32; 2] {
     [(x >> 32) as u32, x as u32]
 }
@@ -72,17 +76,14 @@ where
     const TYPE_SALT: u32 = type_salt::<T>();
 
     fn ehash(&self) -> u64 {
-        let mut checksum = fletcher::Fletcher64::new();
-        checksum.update(&[Self::TYPE_SALT]);
+        const NONE_VAL: u32 = 780526312;
 
         if let Some(x) = self {
-            checksum.update(&split_u64(x.ehash()));
+            let parts = split_u64(x.ehash());
+            calc_fletcher64(&[Self::TYPE_SALT, parts[0], parts[1]])
         } else {
-            let none_val: u32 = 780526312;
-            checksum.update(&[none_val]);
+            calc_fletcher64(&[Self::TYPE_SALT, NONE_VAL])
         }
-
-        checksum.value()
     }
 }
 
@@ -95,9 +96,8 @@ where
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
-        for x in self {
-            checksum.update(&split_u64(x.ehash()));
-        }
+        let hashes: Vec<u64> = self.iter().map(|x| x.ehash()).collect();
+        checksum.update(u64_to_u32_slice(&hashes));
         checksum.value()
     }
 }
@@ -107,11 +107,14 @@ impl EasyHash for &str {
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
-        for chunk in self.as_bytes().rchunks(4) {
+        let bytes = self.as_bytes();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
+        for chunk in chunks {
+            checksum.update(&[u32::from_le_bytes(*chunk)]);
+        }
+        if !remainder.is_empty() {
             let mut byte = [0u8; 4];
-            for j in 0..4 {
-                byte[j] = *chunk.get(j).unwrap_or(&0);
-            }
+            byte[..remainder.len()].copy_from_slice(remainder);
             checksum.update(&[u32::from_le_bytes(byte)]);
         }
         checksum.value()
@@ -124,11 +127,14 @@ impl EasyHash for String {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
 
-        for chunk in self.as_bytes().rchunks(4) {
+        let bytes = self.as_bytes();
+        let (chunks, remainder) = bytes.as_chunks::<4>();
+        for chunk in chunks {
+            checksum.update(&[u32::from_le_bytes(*chunk)]);
+        }
+        if !remainder.is_empty() {
             let mut byte = [0u8; 4];
-            for j in 0..4 {
-                byte[j] = *chunk.get(j).unwrap_or(&0);
-            }
+            byte[..remainder.len()].copy_from_slice(remainder);
             checksum.update(&[u32::from_le_bytes(byte)]);
         }
         checksum.value()
