@@ -27,7 +27,7 @@ ordered-float = "5.0"
 #   "serde-serialize",
 #   "enhanced-determinism",
 # ] }
-rapier2d = { git = "https://github.com/bcolloran/rapier.git", rev = "bc9c06fbe523d7f3c5a0458e0899c9bf7fb2c7a3", features = [
+rapier2d = { git = "https://github.com/bcolloran/rapier.git", branch = "my-changes", features = [
   "serde-serialize",
   "enhanced-determinism",
 ] }
