@@ -44,7 +44,8 @@ The attribute `easy_hash_ignore` skips a field when computing the hash.
 
 ## Building
 
-This workspace requires the nightly toolchain and uses Cargo to run the
+This workspace targets the **Rust 2024 edition** and currently requires a
+nightly toolchain (1.78 or newer) to build the crates. Use Cargo to run the
 tests:
 
 ```bash
