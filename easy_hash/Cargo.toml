@@ -11,7 +11,8 @@ bevy = ["bevy_ecs"]
 nalgebra = []
 ordered_float = []
 rapier = []
-default = ["nalgebra", "ordered_float", "rapier"]
+default = ["nalgebra", "ordered_float", "rapier", "godot"]
+godot = []
 
 [dependencies]
 easy_hash_derive = { path = "../easy_hash_derive" }
@@ -21,6 +22,10 @@ const-fnv1a-hash = "1.1.0"
 bevy_ecs = { version = "0.14", optional = true }
 nalgebra = "0.33"
 ordered-float = "5.0"
+godot = { version = "0.3", features = [
+  "register-docs",
+  "experimental-threads",
+] }
 
 
 # rapier2d = { version = "0.24.0", features = [

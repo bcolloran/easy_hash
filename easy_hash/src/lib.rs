@@ -2,6 +2,8 @@
 
 use const_fnv1a_hash::fnv1a_hash_str_32;
 
+#[cfg(feature = "godot")]
+pub mod godot;
 #[cfg(feature = "nalgebra")]
 pub mod nalgebra;
 #[cfg(feature = "ordered_float")]
