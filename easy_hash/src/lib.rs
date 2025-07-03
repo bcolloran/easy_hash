@@ -30,6 +30,7 @@ use fletcher::*;
 pub mod bytemuck_slices;
 pub mod std_once_cell;
 pub mod tuples;
+pub mod type_id;
 
 pub trait EasyHash {
     const TYPE_SALT: u32;
