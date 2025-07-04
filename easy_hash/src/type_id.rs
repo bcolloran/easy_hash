@@ -3,7 +3,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use crate::EasyHash;
+use crate::{EasyHash, type_salt};
 
 struct IdentityHasher(u64);
 
@@ -28,8 +28,8 @@ impl Hasher for IdentityHasher {
 }
 
 impl EasyHash for TypeId {
-    // NOTE: EasyHash for TypeId just passes through the already-hashed value for the type. Thus, the TYPE_SALT is irrelevant, and so set to 0.
-    const TYPE_SALT: u32 = 0;
+    const TYPE_SALT: u32 = type_salt::<Self>();
+    // NOTE: EasyHash for TypeId just passes through the already-hashed value for the type. Thus, the TYPE_SALT is irrelevant, and so not passed through to final hash value
     fn ehash(&self) -> u64 {
         let mut hasher = IdentityHasher(0);
         self.hash(&mut hasher);
