@@ -22,7 +22,7 @@ const-fnv1a-hash = "1.1.0"
 bevy_ecs = { version = "0.14", optional = true }
 nalgebra = "0.33"
 ordered-float = "5.0"
-godot = { version = "0.3", features = [
+godot = { version = "0.4.2", features = [
   "register-docs",
   "experimental-threads",
 ] }
