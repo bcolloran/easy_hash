@@ -22,13 +22,13 @@ const-fnv1a-hash = "1.1.0"
 bevy_ecs = { version = "0.14", optional = true }
 nalgebra = "0.34"
 ordered-float = "5.0"
-godot = { version = "0.4.2", features = [
+godot = { version = "0.4.4", features = [
   "register-docs",
   "experimental-threads",
 ] }
 
 
-rapier2d = { git = "https://github.com/bcolloran/rapier.git", branch = "my-changes-2", features = [
+rapier2d = { git = "https://github.com/bcolloran/rapier.git", branch = "my-changes-3", features = [
   "serde-serialize",
   "enhanced-determinism",
 ] }
