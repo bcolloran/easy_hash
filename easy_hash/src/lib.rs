@@ -25,6 +25,8 @@ where
 }
 
 pub use easy_hash_derive::*;
+pub use fletcher;
+
 use fletcher::*;
 
 pub mod bytemuck_slices;

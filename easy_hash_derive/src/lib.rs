@@ -2,7 +2,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use syn::{
-    parse_macro_input, parse_quote, Data, DeriveInput, Fields, GenericParam, Generics, Index,
+    Data, DeriveInput, Fields, GenericParam, Generics, Index, parse_macro_input, parse_quote,
 };
 
 #[proc_macro_derive(EasyHash, attributes(easy_hash_ignore))]
@@ -147,7 +147,7 @@ fn hash_sum(data: &Data) -> TokenStream {
             });
 
             quote! {
-                let mut checksum = fletcher::Fletcher64::new();
+                let mut checksum = easy_hash::fletcher::Fletcher64::new();
                 match self {
                     #(#match_arms)*
                 }
@@ -159,7 +159,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                 Fields::Named(ref fields) => {
                     // Expands to an expression like
                     // ```
-                    // let mut checksum = fletcher::Fletcher64::new();
+                    // let mut checksum = easy_hash::fletcher::Fletcher64::new();
                     // checksum.update(&[Self::TYPE_SALT]);
                     // checksum.update(&easy_hash::u64_to_u32_slice(&[
                     //     easy_hash::EasyHash::ehash(&self.a),
@@ -194,7 +194,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                         });
 
                     quote! {
-                        let mut checksum = fletcher::Fletcher64::new();
+                        let mut checksum = easy_hash::fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);
                         checksum.update(&easy_hash::u64_to_u32_slice(&[ #(#recurse,)* ]));
                         checksum.value()
@@ -204,7 +204,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                     // Expands to an expression like
                     //
                     // ```
-                    // let mut checksum = fletcher::Fletcher64::new();
+                    // let mut checksum = easy_hash::fletcher::Fletcher64::new();
                     // checksum.update(&[Self::TYPE_SALT]);
                     // checksum.update(&easy_hash::u64_to_u32_slice(&[
                     //     easy_hash::EasyHash::ehash(&self.0),
@@ -221,7 +221,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                         }
                     });
                     quote! {
-                        let mut checksum = fletcher::Fletcher64::new();
+                        let mut checksum = easy_hash::fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);
                         checksum.update(&easy_hash::u64_to_u32_slice(&[ #(#recurse,)* ]));
                         checksum.value()
@@ -230,7 +230,7 @@ fn hash_sum(data: &Data) -> TokenStream {
                 Fields::Unit => {
                     // for unit structs, type_salt is the only thing that matters
                     quote! {
-                        let mut checksum = fletcher::Fletcher64::new();
+                        let mut checksum = easy_hash::fletcher::Fletcher64::new();
                         checksum.update(&[Self::TYPE_SALT]);
                         checksum.value()
                     }
