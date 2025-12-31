@@ -335,6 +335,7 @@ fn test_tup_of_tupstruct_and_tup_ne_tup_when_reordered() {
 }
 
 #[derive(EasyHash)]
+#[allow(dead_code)]
 struct TestTupOptionStruct(Option<f32>);
 
 #[derive(EasyHash)]
