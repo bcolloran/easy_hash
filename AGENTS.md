@@ -1,6 +1,9 @@
-Refer to the file `AGENTS.md` in the repo `https://github.com/bcolloran/agents_md` and all of the other files in that repo for coding guidelines for this project.
+ ***IMPORTANT: when retrieving content from urls, the fetch tools built-in to the agent environment, DO NOT USE `curl` or a python script or some other crazy solution! DO NOT USE CURL!!!***
 
-(list files via: `https://api.github.com/repos/bcolloran/agents_md/git/trees/main?recursive=1`. Note: in a VsCode session, just use the built-in fetch, not `curl` or a python script or some other crazy solution! **VSCODE MAY NOT USE CURL!!!**) 
+Get a list files of all the files in the agent guidelines repo from the url: `https://api.github.com/repos/bcolloran/agents_md/git/trees/main?recursive=1`. 
+
+
+Refer to the file main file `AGENTS.md` in the repo `https://github.com/bcolloran/agents_md` for general guidelines, and to the other files as needed for specific instructions. ***Err on the side of reading all the files in the repo if you are unsure which apply.***
 
 This repo must be accessed by the agent at the start of every task to ensure it has the latest coding standards and guidelines.
 
