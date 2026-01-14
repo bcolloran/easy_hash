@@ -1,3 +1,4 @@
+#![doc = include_str!("../../README.md")]
 #![feature(const_type_name)]
 
 use const_fnv1a_hash::fnv1a_hash_str_32;
