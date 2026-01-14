@@ -33,6 +33,8 @@ pub mod bytemuck_slices;
 pub mod std_once_cell;
 pub mod tuples;
 pub mod type_id;
+pub mod type_salt_generic;
+pub use type_salt_generic::*;
 
 pub trait EasyHash {
     const TYPE_SALT: u32;

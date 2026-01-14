@@ -27,10 +27,17 @@ fn test_generic_struct_different_types_different_sizes() {
 }
 
 #[test]
-fn test_generic_struct_different_types_same_sizes() {
-    let s1 = TestStruct::new(10u16);
-    let s2 = TestStruct::new(10i16);
+fn test_generic_struct_different_types_same_bits() {
+    let s1 = TestStruct::new(0u32);
+    let s2 = TestStruct::new(0i32);
+    let s3 = TestStruct::new(0f32);
+    let s4 = TestStruct::new([0u8; 4]);
     assert_ne!(s1.ehash(), s2.ehash());
+    assert_ne!(s1.ehash(), s3.ehash());
+    assert_ne!(s1.ehash(), s4.ehash());
+    assert_ne!(s2.ehash(), s3.ehash());
+    assert_ne!(s2.ehash(), s4.ehash());
+    assert_ne!(s3.ehash(), s4.ehash());
 }
 
 #[derive(EasyHash)]
