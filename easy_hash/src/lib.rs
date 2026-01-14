@@ -76,6 +76,16 @@ where
     }
 }
 
+impl<T> EasyHash for std::marker::PhantomData<T> {
+    const TYPE_SALT: u32 = type_salt::<std::marker::PhantomData<T>>();
+
+    fn ehash(&self) -> u64 {
+        // PhantomData has no runtime data, only type information
+        // We hash only the type salt to differentiate between different PhantomData<T> types
+        calc_fletcher64(&[Self::TYPE_SALT])
+    }
+}
+
 impl<T> EasyHash for Option<T>
 where
     T: EasyHash,

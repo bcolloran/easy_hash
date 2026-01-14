@@ -37,6 +37,9 @@ pub fn derive_easy_hash(input: proc_macro::TokenStream) -> proc_macro::TokenStre
 }
 
 // Add a bound `T: EasyHash` to every type parameter T.
+// Note: PhantomData<T> doesn't require T: EasyHash, so we keep the simple approach
+// of adding the bound to all type parameters. The PhantomData implementation
+// doesn't depend on T implementing EasyHash.
 fn add_trait_bounds(mut generics: Generics) -> Generics {
     for param in &mut generics.params {
         if let GenericParam::Type(ref mut type_param) = *param {
