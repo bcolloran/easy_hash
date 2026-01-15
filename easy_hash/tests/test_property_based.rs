@@ -64,7 +64,7 @@ proptest! {
 
     #[test]
     fn prop_reference_hash_matches_value(value in any::<u64>()) {
-        prop_assert_eq!(value.ehash(), (&value).ehash());
+        prop_assert_eq!(value.ehash(), EasyHash::ehash(&value));
     }
 
     #[test]
