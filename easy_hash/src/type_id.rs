@@ -36,3 +36,18 @@ impl EasyHash for TypeId {
         hasher.finish()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::IdentityHasher;
+    use std::hash::Hasher;
+
+    #[test]
+    #[should_panic(
+        expected = "IdentityHasher does not support writing bytes directly. Use write_u64 instead."
+    )]
+    fn identity_hasher_write_panics() {
+        let mut hasher = IdentityHasher(0);
+        hasher.write(b"unsupported");
+    }
+}

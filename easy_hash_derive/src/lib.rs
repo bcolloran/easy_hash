@@ -284,6 +284,25 @@ mod tests {
     }
 
     #[test]
+    fn test_struct_with_lifetime_param() {
+        let input: DeriveInput = parse_quote! {
+            struct Example<'a> {
+                data: &'a u32,
+            }
+        };
+
+        let actual = expand_as_string(input);
+        assert!(
+            actual.contains("impl < 'a > easy_hash :: EasyHash for Example < 'a >"),
+            "expected lifetime param in impl header: {actual}"
+        );
+        assert!(
+            !actual.contains("'a : easy_hash :: EasyHash"),
+            "unexpected EasyHash bound on lifetime: {actual}"
+        );
+    }
+
+    #[test]
     fn test_enum_variants_mixed_fields() {
         let input: DeriveInput = parse_quote! {
             enum Example {
@@ -356,5 +375,17 @@ mod tests {
         .to_string();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_union_not_supported() {
+        let input: DeriveInput = parse_quote! {
+            union Example {
+                x: u32,
+            }
+        };
+
+        let _ = expand_as_string(input);
     }
 }
