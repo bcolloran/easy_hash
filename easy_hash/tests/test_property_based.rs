@@ -59,7 +59,7 @@ proptest! {
 
         let rebuilt: Vec<u64> = parts
             .chunks_exact(2)
-            .map(|chunk| join_u32s(chunk[0], chunk[1]))
+            .map(|chunk| join_u32s(chunk[1], chunk[0]))
             .collect();
         prop_assert_eq!(rebuilt, values);
     }
