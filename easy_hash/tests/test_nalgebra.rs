@@ -1,5 +1,5 @@
 use easy_hash::EasyHash;
-use nalgebra::{Vector2, Vector3, UnitVector2, Point2};
+use nalgebra::{Point2, UnitVector2, Vector2, Vector3};
 
 #[test]
 fn test_vector2_hash() {

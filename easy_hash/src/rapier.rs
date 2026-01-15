@@ -2,7 +2,7 @@ use rapier2d::prelude::{
     ColliderHandle, ImpulseJointHandle, MultibodyJointHandle, RigidBodyHandle,
 };
 
-use crate::{type_salt, EasyHash};
+use crate::{EasyHash, type_salt};
 
 impl EasyHash for RigidBodyHandle {
     const TYPE_SALT: u32 = type_salt::<Self>();

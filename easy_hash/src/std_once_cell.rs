@@ -1,6 +1,6 @@
 use std::cell::OnceCell;
 
-use crate::{split_u64, type_salt, EasyHash};
+use crate::{EasyHash, split_u64, type_salt};
 use fletcher::calc_fletcher64;
 
 impl<T> EasyHash for OnceCell<T>

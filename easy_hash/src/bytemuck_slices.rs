@@ -1,5 +1,5 @@
-use crate::{type_salt, EasyHash};
-use bytemuck::{cast_slice, pod_align_to, Pod};
+use crate::{EasyHash, type_salt};
+use bytemuck::{Pod, cast_slice, pod_align_to};
 use fletcher::Fletcher64;
 
 /// Update the checksum with at most 4 bytes of `data`,
