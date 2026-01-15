@@ -51,6 +51,14 @@ fn test_str_vs_string() {
 }
 
 #[test]
+fn test_str_exact_chunks() {
+    let s_str = "test";
+    let s_string = String::from("test");
+
+    assert_ne!(s_str.ehash(), s_string.ehash());
+}
+
+#[test]
 fn test_str_slices() {
     let s = "hello world";
     let slice1 = &s[0..5];
