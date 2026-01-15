@@ -1,5 +1,7 @@
 use easy_hash::EasyHash;
-use rapier2d::prelude::{RigidBodyHandle, ColliderHandle, ImpulseJointHandle, MultibodyJointHandle};
+use rapier2d::prelude::{
+    ColliderHandle, ImpulseJointHandle, MultibodyJointHandle, RigidBodyHandle,
+};
 
 #[test]
 fn test_rigid_body_handle_hash() {

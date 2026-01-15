@@ -1,5 +1,5 @@
 use easy_hash::EasyHash;
-use ordered_float::{OrderedFloat, NotNan};
+use ordered_float::{NotNan, OrderedFloat};
 
 #[test]
 fn test_ordered_float_f32_hash() {

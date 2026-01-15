@@ -16,8 +16,8 @@ fn test_several_non_equal_type_ids() {
     let t5 = std::any::TypeId::of::<bool>();
     let t6 = std::any::TypeId::of::<String>();
     let t7 = std::any::TypeId::of::<()>();
-    let t8 = std::any::TypeId::of::<(u32,u32)>();
-    let t9 = std::any::TypeId::of::<Option<(u32,u32)>>();
+    let t8 = std::any::TypeId::of::<(u32, u32)>();
+    let t9 = std::any::TypeId::of::<Option<(u32, u32)>>();
 
     assert_ne!(t1.ehash(), t2.ehash());
     assert_ne!(t1.ehash(), t3.ehash());

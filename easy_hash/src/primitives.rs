@@ -10,7 +10,6 @@ impl EasyHash for bool {
 /// NOTE: for bit types, fletcher cannot differentiate between
 ///  binary all 0 and all 1, so in the case of all 1, we append
 /// an extra copy of the TYPE_SALT to the checksum
-
 impl EasyHash for u8 {
     const TYPE_SALT: u32 = type_salt::<u8>();
 
@@ -142,7 +141,7 @@ impl EasyHash for isize {
 impl EasyHash for f32 {
     const TYPE_SALT: u32 = type_salt::<f32>();
     fn ehash(&self) -> u64 {
-        let bits = self.to_bits() as u32;
+        let bits = self.to_bits();
         calc_fletcher64(&[f32::TYPE_SALT, bits])
     }
 }
@@ -152,7 +151,7 @@ impl EasyHash for f64 {
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
-        let bits = self.to_bits() as u64;
+        let bits = self.to_bits();
         checksum.update(&split_u64(bits));
         checksum.value()
     }

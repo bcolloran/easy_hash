@@ -127,10 +127,11 @@ impl EasyHash for &str {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[Self::TYPE_SALT]);
         let bytes = self.as_bytes();
-        let (chunks, remainder) = bytes.as_chunks::<4>();
-        for chunk in chunks {
-            checksum.update(&[u32::from_le_bytes(*chunk)]);
+        let mut chunks = bytes.chunks_exact(4);
+        for chunk in &mut chunks {
+            checksum.update(&[u32::from_le_bytes(chunk.try_into().unwrap())]);
         }
+        let remainder = chunks.remainder();
         if !remainder.is_empty() {
             let mut byte = [0u8; 4];
             byte[..remainder.len()].copy_from_slice(remainder);
@@ -147,10 +148,11 @@ impl EasyHash for String {
         checksum.update(&[Self::TYPE_SALT]);
 
         let bytes = self.as_bytes();
-        let (chunks, remainder) = bytes.as_chunks::<4>();
-        for chunk in chunks {
-            checksum.update(&[u32::from_le_bytes(*chunk)]);
+        let mut chunks = bytes.chunks_exact(4);
+        for chunk in &mut chunks {
+            checksum.update(&[u32::from_le_bytes(chunk.try_into().unwrap())]);
         }
+        let remainder = chunks.remainder();
         if !remainder.is_empty() {
             let mut byte = [0u8; 4];
             byte[..remainder.len()].copy_from_slice(remainder);

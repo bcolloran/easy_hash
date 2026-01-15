@@ -1,4 +1,4 @@
-use crate::{join_u32s, type_salt, u64_to_u32_slice, EasyHash};
+use crate::{EasyHash, join_u32s, type_salt, u64_to_u32_slice};
 
 impl EasyHash for () {
     const TYPE_SALT: u32 = type_salt::<Self>();
@@ -49,4 +49,6 @@ easy_hash_tuple_impl!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
 easy_hash_tuple_impl!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
 easy_hash_tuple_impl!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);
 easy_hash_tuple_impl!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13);
-easy_hash_tuple_impl!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14);
+easy_hash_tuple_impl!(
+    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14
+);

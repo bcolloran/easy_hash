@@ -1,7 +1,5 @@
-use easy_hash::{
-    EasyHash, join_u32s, split_i64, split_u64, type_salt, u64_to_u32_slice,
-};
 use bytemuck::cast_slice;
+use easy_hash::{EasyHash, join_u32s, split_i64, split_u64, type_salt, u64_to_u32_slice};
 use fletcher::Fletcher64;
 use proptest::prelude::*;
 

@@ -8,9 +8,9 @@ impl EasyHash for Vector3 {
         let mut checksum = fletcher::Fletcher64::new();
         checksum.update(&[
             Self::TYPE_SALT,
-            self.x.to_bits() as u32,
-            self.y.to_bits() as u32,
-            self.z.to_bits() as u32,
+            self.x.to_bits(),
+            self.y.to_bits(),
+            self.z.to_bits(),
         ]);
         checksum.value()
     }
@@ -20,11 +20,7 @@ impl EasyHash for godot::builtin::Vector2 {
     const TYPE_SALT: u32 = type_salt::<Self>();
     fn ehash(&self) -> u64 {
         let mut checksum = fletcher::Fletcher64::new();
-        checksum.update(&[
-            Self::TYPE_SALT,
-            self.x.to_bits() as u32,
-            self.y.to_bits() as u32,
-        ]);
+        checksum.update(&[Self::TYPE_SALT, self.x.to_bits(), self.y.to_bits()]);
 
         checksum.value()
     }

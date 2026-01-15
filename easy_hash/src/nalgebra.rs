@@ -1,6 +1,6 @@
 use nalgebra::{Const, OPoint, UnitVector2};
 
-use crate::{type_salt, EasyHash};
+use crate::{EasyHash, type_salt};
 
 impl EasyHash for nalgebra::Vector2<f32> {
     const TYPE_SALT: u32 = type_salt::<Self>();
