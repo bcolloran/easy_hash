@@ -1,4 +1,3 @@
-use bytemuck::cast_slice;
 use easy_hash::{EasyHash, join_u32s, split_i64, split_u64, type_salt, u64_to_u32_slice};
 use fletcher::Fletcher64;
 use proptest::prelude::*;
@@ -58,8 +57,11 @@ proptest! {
         let parts = u64_to_u32_slice(&values);
         prop_assert_eq!(parts.len(), values.len() * 2);
 
-        let rebuilt = cast_slice::<u32, u64>(parts);
-        prop_assert_eq!(rebuilt, values.as_slice());
+        let rebuilt: Vec<u64> = parts
+            .chunks_exact(2)
+            .map(|chunk| join_u32s(chunk[0], chunk[1]))
+            .collect();
+        prop_assert_eq!(rebuilt, values);
     }
 
     #[test]
