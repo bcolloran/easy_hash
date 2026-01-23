@@ -228,3 +228,164 @@ fn has_easy_hash_ignore_attr(field: &syn::Field) -> bool {
         .iter()
         .any(|attr| attr.path().is_ident("easy_hash_ignore"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    use syn::parse_quote;
+
+    fn expand_as_string(input: DeriveInput) -> String {
+        let name = input.ident;
+        let generics = add_trait_bounds(input.generics);
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+        let ehash_fn_inner = hash_sum(&input.data);
+
+        quote! {
+            impl #impl_generics easy_hash::EasyHash for #name #ty_generics #where_clause {
+                const TYPE_SALT: u32 = easy_hash::type_salt::<#name #ty_generics>();
+
+                fn ehash(&self) -> u64 {
+                    #ehash_fn_inner
+                }
+            }
+        }
+        .to_string()
+    }
+
+    #[test]
+    fn test_struct_named_ignores_marked_fields() {
+        let input: DeriveInput = parse_quote! {
+            struct Example<T> {
+                a: u32,
+                #[easy_hash_ignore]
+                b: T,
+            }
+        };
+
+        let actual = expand_as_string(input);
+        let expected = quote! {
+            impl<T: easy_hash::EasyHash> easy_hash::EasyHash for Example<T> {
+                const TYPE_SALT: u32 = easy_hash::type_salt::<Example<T> >();
+
+                fn ehash(&self) -> u64 {
+                    let mut checksum = easy_hash::fletcher::Fletcher64::new();
+                    checksum.update(&[Self::TYPE_SALT]);
+                    checksum.update(&easy_hash::u64_to_u32_slice(&[
+                        easy_hash::EasyHash::ehash(&self.a),
+                    ]));
+                    checksum.value()
+                }
+            }
+        }
+        .to_string();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_struct_with_lifetime_param() {
+        let input: DeriveInput = parse_quote! {
+            struct Example<'a> {
+                data: &'a u32,
+            }
+        };
+
+        let actual = expand_as_string(input);
+        assert!(
+            actual.contains("impl < 'a > easy_hash :: EasyHash for Example < 'a >"),
+            "expected lifetime param in impl header: {actual}"
+        );
+        assert!(
+            !actual.contains("'a : easy_hash :: EasyHash"),
+            "unexpected EasyHash bound on lifetime: {actual}"
+        );
+    }
+
+    #[test]
+    fn test_enum_variants_mixed_fields() {
+        let input: DeriveInput = parse_quote! {
+            enum Example {
+                Unit,
+                Tuple(u32, u64),
+                Named {
+                    x: u8,
+                    #[easy_hash_ignore]
+                    y: u16,
+                },
+            }
+        };
+
+        let actual = expand_as_string(input);
+        let expected = quote! {
+            impl easy_hash::EasyHash for Example {
+                const TYPE_SALT: u32 = easy_hash::type_salt::<Example>();
+
+                fn ehash(&self) -> u64 {
+                    let mut checksum = easy_hash::fletcher::Fletcher64::new();
+                    match self {
+                        Self::Unit => {
+                            checksum.update(&[Self::TYPE_SALT, 0]);
+                        }
+                        Self::Tuple(f0, f1,) => {
+                            checksum.update(&[Self::TYPE_SALT, 1]);
+                            checksum.update(&easy_hash::u64_to_u32_slice(&[
+                                easy_hash::EasyHash::ehash(f0),
+                                easy_hash::EasyHash::ehash(f1),
+                            ]));
+                        }
+                        Self::Named { x, } => {
+                            checksum.update(&[Self::TYPE_SALT, 2]);
+                            checksum.update(&easy_hash::u64_to_u32_slice(&[
+                                x.ehash(),
+                            ]));
+                        }
+                    }
+                    checksum.value()
+                }
+            }
+        }
+        .to_string();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_tuple_struct_hashing() {
+        let input: DeriveInput = parse_quote! {
+            struct Wrapper(u8, u16);
+        };
+
+        let actual = expand_as_string(input);
+        let expected = quote! {
+            impl easy_hash::EasyHash for Wrapper {
+                const TYPE_SALT: u32 = easy_hash::type_salt::<Wrapper>();
+
+                fn ehash(&self) -> u64 {
+                    let mut checksum = easy_hash::fletcher::Fletcher64::new();
+                    checksum.update(&[Self::TYPE_SALT]);
+                    checksum.update(&easy_hash::u64_to_u32_slice(&[
+                        easy_hash::EasyHash::ehash(&self.0),
+                        easy_hash::EasyHash::ehash(&self.1),
+                    ]));
+                    checksum.value()
+                }
+            }
+        }
+        .to_string();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_union_not_supported() {
+        let input: DeriveInput = parse_quote! {
+            union Example {
+                x: u32,
+            }
+        };
+
+        let _ = expand_as_string(input);
+    }
+}

@@ -27,46 +27,21 @@ struct TestStruct {
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_structs_permute_floats_fields(a: f32, bbb: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: bbb,
-        c: c,
-        d: d,
-    };
-    let bb = TestStruct {
-        a: bbb,
-        b: a,
-        c: c,
-        d: d,
-    };
+    let aa = TestStruct { a, b: bbb, c, d };
+    let bb = TestStruct { a: bbb, b: a, c, d };
     assert_ne!(aa.ehash(), bb.ehash());
 }
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_structs_permute_int_fields(a: f32, b: f32, ccc: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: ccc,
-        d: d,
-    };
-    let bb = TestStruct {
-        a: a,
-        b: b,
-        c: d,
-        d: ccc,
-    };
+    let aa = TestStruct { a, b, c: ccc, d };
+    let bb = TestStruct { a, b, c: d, d: ccc };
     assert_ne!(aa.ehash(), bb.ehash());
 }
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_structs_not_equal_to_tup_with_same_data(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
+    let aa = TestStruct { a, b, c, d };
     let bb = (a, b, c, d);
     assert_ne!(aa.ehash(), bb.ehash());
 }
@@ -98,69 +73,29 @@ struct TestStructTwo {
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_different_types_with_same_data_not_equal(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
-    let bb = TestStructTwo {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
+    let aa = TestStruct { a, b, c, d };
+    let bb = TestStructTwo { a, b, c, d };
     assert_ne!(aa.ehash(), bb.ehash());
 }
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_tup_of_struct(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
-    let bb = TestStructTwo {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
+    let aa = TestStruct { a, b, c, d };
+    let bb = TestStructTwo { a, b, c, d };
     assert_eq!((&aa, &bb).ehash(), (&aa, &bb).ehash());
 }
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_tup_of_struct_ne_when_reordered(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
-    let bb = TestStructTwo {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
+    let aa = TestStruct { a, b, c, d };
+    let bb = TestStructTwo { a, b, c, d };
     assert_ne!((&bb, &aa).ehash(), (&aa, &bb).ehash());
 }
 
 #[test_case(0.0, -0.1, 0, 1 ; "first case")]
 fn test_vec_of_struct_ne_when_reordered(a: f32, b: f32, c: u8, d: u8) {
-    let aa = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d,
-    };
-    let bb = TestStruct {
-        a: a,
-        b: b,
-        c: c,
-        d: d + 1,
-    };
+    let aa = TestStruct { a, b, c, d };
+    let bb = TestStruct { a, b, c, d: d + 1 };
     let v1 = vec![&bb, &aa];
     let v2 = vec![&aa, &bb];
     assert_ne!(v1.ehash(), v2.ehash());

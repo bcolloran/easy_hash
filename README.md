@@ -1,5 +1,8 @@
 # easy_hash
 
+[![CI](https://github.com/bcolloran/easy_hash/actions/workflows/rust.yml/badge.svg)](https://github.com/bcolloran/easy_hash/actions/workflows/rust.yml)
+[![codecov](https://codecov.io/gh/bcolloran/easy_hash/branch/master/graph/badge.svg)](https://codecov.io/gh/bcolloran/easy_hash)
+
 `easy_hash` provides a deterministic 64‑bit hash based on the
 structure of a value.  It is split into two crates:
 
@@ -54,4 +57,3 @@ cargo test
 
 The tests demonstrate correctness across a variety of types including
 structures, enums and tuples.
-

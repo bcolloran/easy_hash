@@ -5,7 +5,7 @@ use test_case::test_case;
 #[test_case(1  ; "for 1")]
 #[test_case(107  ; "for 107")]
 fn test_salted_uints(x: u8) {
-    assert_ne!((x as u8).ehash(), x as u64);
+    assert_ne!(x.ehash(), x as u64);
 }
 
 #[test_case((0,1) ; "for 0 1")]
