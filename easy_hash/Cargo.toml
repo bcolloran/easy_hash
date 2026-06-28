@@ -28,7 +28,7 @@ godot = { version = "0.5.3", features = [
 ] }
 
 
-rapier2d = { git = "https://github.com/bcolloran/rapier.git", branch = "my-changes-3", features = [
+rapier2d = { git = "https://github.com/bcolloran/rapier.git", branch = "my-changes-0.32.0", features = [
   "serde-serialize",
   "enhanced-determinism",
 ] }
